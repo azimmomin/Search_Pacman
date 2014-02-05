@@ -370,40 +370,16 @@ def cornersHeuristic(state, problem):
     """
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-    dist1 = 0
-    dist2 = 0
-    dist3 = 0
-    dist4 = 0
-    if (state[0] == corners[0]):
-        return 0
-    elif (state[0] == corners[1]):
-        return 0
-    elif (state[0] == corners[2]):
-        return 0
-    elif (state[0] == corners[3]):
-        return 0
-    else:
-        """
-        dist1 = cornersManhattanHeuristic(state[0], problem.corners[0]);
-        dist2 = cornersManhattanHeuristic(state[0], problem.corners[1]);
-        dist3 = cornersManhattanHeuristic(state[0], problem.corners[2]);
-        dist4 = cornersManhattanHeuristic(state[0], problem.corners[3]);
-        minDist = min((dist1, dist2, dist3, dist4))
-        h = 0
-        if (minDist == dist1):
-            h = cornersManhattanHeuristic(state[0], problem.corners[0]);
-        elif (minDist == dist2):
-            h = cornersManhattanHeuristic(state[0], problem.corners[1]);
-        elif (minDist == dist3):
-            h = cornersManhattanHeuristic(state[0], problem.corners[2]);
-        else:
-            h = cornersManhattanHeuristic(state[0], problem.corners[3]);
-        """
-        dist1 = cornersMazeDistance(state[0], corners[0], walls, problem)
-        dist2 = cornersMazeDistance(state[0], corners[1], walls, problem)
-        dist3 = cornersMazeDistance(state[0], corners[2], walls, problem)
-        dist4 = cornersMazeDistance(state[0], corners[3], walls, problem)
-    return min((dist1, dist2, dist3, dist4)) # Default to trivial solution
+    h = 0
+    if (not state[1][0]):
+        h += cornersManhattanHeuristic(state[0], corners[0])
+    elif (not state[1][1]):
+        h += cornersManhattanHeuristic(state[0], corners[1])
+    elif (not state[1][2]):
+        h += cornersManhattanHeuristic(state[0], corners[2])
+    elif (not state[1][3]):
+        h += cornersManhattanHeuristic(state[0], corners[3])
+    return h
 
 
 def cornersManhattanHeuristic(position, goalPos, info={}):
@@ -417,24 +393,6 @@ def cornersEuclideanHeuristic(position, goalPos, info={}):
     xy1 = position
     xy2 = goalPos
     return ( (xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5
-
-def cornersMazeDistance(point1, point2, walls, problem):
-    """
-    Returns the maze distance between any two points, using the search functions
-    you have already built.  The gameState can be any game state -- Pacman's position
-    in that state is ignored.
-
-    Example usage: mazeDistance( (2,4), (5,6), gameState)
-
-    This might be a useful helper function for your ApproximateSearchAgent.
-    """
-    x1, y1 = point1
-    x2, y2 = point2
-    #walls = gameState.getWalls()
-    assert not walls[x1][y1], 'point1 is a wall: ' + point1
-    assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
-    prob = PositionSearchProblem(problem.state, start=point1, goal=point2, warn=False, visualize=False)
-    return len(search.bfs(prob))
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
