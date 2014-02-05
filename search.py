@@ -138,9 +138,9 @@ def breadthFirstSearch(problem):
             closedSet.add(nodePos)
             path = [nodeDir]
             for childNode in successors:
-                cost = nodeCost + childNode[2]
+                #cost = nodeCost + childNode[2]
                 path = nodeDir + [childNode[1]]
-                childNode = [childNode[0], path , cost]
+                childNode = [childNode[0], path , child[2]]
                 fringe.push(childNode)
 
     return -1

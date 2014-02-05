@@ -274,6 +274,7 @@ class CornersProblem(search.SearchProblem):
         """
         Stores the walls, pacman's starting position and corners.
         """
+        self.state = startingGameState
         self.walls = startingGameState.getWalls()
         self.startingPosition = startingGameState.getPacmanPosition()
         top, right = self.walls.height-2, self.walls.width-2
@@ -284,18 +285,26 @@ class CornersProblem(search.SearchProblem):
         self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
         # Please add any code here which you would like to use
         # in initializing the problem
-        "*** YOUR CODE HERE ***"
+        self.cornersVisited = (self.startingPosition == self.corners[0], self.startingPosition == self.corners[1],
+                               self.startingPosition == self.corners[2], self.startingPosition == self.corners[3])
 
     def getStartState(self):
         "Returns the start state (in your state space, not the full Pacman state space)"
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #util.raiseNotDefined()
+
+        return (self.startingPosition, self.cornersVisited)
 
     def isGoalState(self, state):
         "Returns whether this search state is a goal state of the problem"
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
-
+        isGoal = True
+        """for corner in state[1]:
+            if (corner == state[0]):
+                corner = True"""
+        #util.raiseNotDefined()
+        for corner in state[1]:
+            isGoal = isGoal and corner
+        return isGoal
+    
     def getSuccessors(self, state):
         """
         Returns successor states, the actions they require, and a cost of 1.
@@ -309,6 +318,7 @@ class CornersProblem(search.SearchProblem):
         """
 
         successors = []
+        x,y = state[0]
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
@@ -317,8 +327,17 @@ class CornersProblem(search.SearchProblem):
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
 
-            "*** YOUR CODE HERE ***"
-
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
+            nextPos = (nextx, nexty)
+            if (not hitsWall):
+                nstate = (nextPos, (nextPos == self.corners[0] or state[1][0],
+                                            nextPos == self.corners[1] or state[1][1],
+                                            nextPos == self.corners[2] or state[1][2],
+                                            nextPos == self.corners[3] or state[1][3]))
+                t = (nstate, action, 1)
+                successors.append(t)
         self._expanded += 1 # DO NOT CHANGE
         return successors
 
@@ -351,9 +370,71 @@ def cornersHeuristic(state, problem):
     """
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+    dist1 = 0
+    dist2 = 0
+    dist3 = 0
+    dist4 = 0
+    if (state[0] == corners[0]):
+        return 0
+    elif (state[0] == corners[1]):
+        return 0
+    elif (state[0] == corners[2]):
+        return 0
+    elif (state[0] == corners[3]):
+        return 0
+    else:
+        """
+        dist1 = cornersManhattanHeuristic(state[0], problem.corners[0]);
+        dist2 = cornersManhattanHeuristic(state[0], problem.corners[1]);
+        dist3 = cornersManhattanHeuristic(state[0], problem.corners[2]);
+        dist4 = cornersManhattanHeuristic(state[0], problem.corners[3]);
+        minDist = min((dist1, dist2, dist3, dist4))
+        h = 0
+        if (minDist == dist1):
+            h = cornersManhattanHeuristic(state[0], problem.corners[0]);
+        elif (minDist == dist2):
+            h = cornersManhattanHeuristic(state[0], problem.corners[1]);
+        elif (minDist == dist3):
+            h = cornersManhattanHeuristic(state[0], problem.corners[2]);
+        else:
+            h = cornersManhattanHeuristic(state[0], problem.corners[3]);
+        """
+        dist1 = cornersMazeDistance(state[0], corners[0], walls, problem)
+        dist2 = cornersMazeDistance(state[0], corners[1], walls, problem)
+        dist3 = cornersMazeDistance(state[0], corners[2], walls, problem)
+        dist4 = cornersMazeDistance(state[0], corners[3], walls, problem)
+    return min((dist1, dist2, dist3, dist4)) # Default to trivial solution
 
-    "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+
+def cornersManhattanHeuristic(position, goalPos, info={}):
+    "The Manhattan distance heuristic for a PositionSearchProblem"
+    xy1 = position
+    xy2 = goalPos
+    return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+
+def cornersEuclideanHeuristic(position, goalPos, info={}):
+    "The Euclidean distance heuristic for a PositionSearchProblem"
+    xy1 = position
+    xy2 = goalPos
+    return ( (xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5
+
+def cornersMazeDistance(point1, point2, walls, problem):
+    """
+    Returns the maze distance between any two points, using the search functions
+    you have already built.  The gameState can be any game state -- Pacman's position
+    in that state is ignored.
+
+    Example usage: mazeDistance( (2,4), (5,6), gameState)
+
+    This might be a useful helper function for your ApproximateSearchAgent.
+    """
+    x1, y1 = point1
+    x2, y2 = point2
+    #walls = gameState.getWalls()
+    assert not walls[x1][y1], 'point1 is a wall: ' + point1
+    assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
+    prob = PositionSearchProblem(problem.state, start=point1, goal=point2, warn=False, visualize=False)
+    return len(search.bfs(prob))
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
